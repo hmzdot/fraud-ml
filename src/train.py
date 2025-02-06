@@ -59,11 +59,10 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
             "housing_status",
         ],
     )
-    corr_matrix = df.corr()
 
     # Get correlation values sorted by importance
-    corr_fraud = corr_matrix["fraud_bool"].sort_values(ascending=False)
-    corr_fraud.drop("fraud_bool")
+    corr_fraud = df.corr()["fraud_bool"].sort_values(ascending=False)
+    corr_fraud = corr_fraud.drop("fraud_bool")
 
     df["fraud_index"] = calculate_fraud_index(df, corr_fraud)
 
