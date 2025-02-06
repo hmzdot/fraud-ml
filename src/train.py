@@ -3,9 +3,10 @@ import numpy as np
 import xgboost as xgb
 import pickle
 import random
+from typing import Union
 from datetime import datetime
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score, classification_report
+from sklearn.metrics import roc_auc_score, classification_report, confusion_matrix
 from fraud import calculate_fraud_index
 
 
@@ -53,7 +54,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def train(df: pd.DataFrame):
+def train(df: pd.DataFrame, seed: Union[int, None] = None):
     X = df.drop(columns=["fraud_bool"])
     y = df["fraud_bool"]
 
@@ -64,7 +65,8 @@ def train(df: pd.DataFrame):
     dtrain = xgb.DMatrix(X_train, label=y_train)
     dtest = xgb.DMatrix(X_test, label=y_test)
 
-    seed = random.randint(0, 1000000)
+    if seed is None:
+        seed = random.randint(0, 1000000)
     print(f"Using seed: {seed}")
 
     # Define XGBoost parameters
@@ -76,6 +78,7 @@ def train(df: pd.DataFrame):
         "seed": seed,
         "subsample": 0.8,
         "colsample_bytree": 0.8,
+        "scale_pos_weight": 10,
     }
 
     # Specify number of boosting rounds
@@ -91,7 +94,6 @@ def train(df: pd.DataFrame):
         num_boost_round=num_rounds,
         evals=watchlist,
         early_stopping_rounds=10,
-        verbose_eval=True,
     )
 
     # Use the trained model to predict probabilities on the test set
@@ -104,6 +106,12 @@ def train(df: pd.DataFrame):
     # Optionally, if you want to convert probabilities to binary predictions:
     y_pred = (y_pred_proba >= 0.5).astype(int)
     print(classification_report(y_test, y_pred))
+
+    cm = confusion_matrix(y_test, y_pred)
+    print("True Negatives:", cm[0, 0])
+    print("False Positives:", cm[0, 1])
+    print("False Negatives:", cm[1, 0])
+    print("True Positives:", cm[1, 1])
 
     model_name = "./snapshots/model_" + datetime.now().strftime("%Y%m%d%H%M%S") + ".ubj"
     bst.save_model(model_name)
