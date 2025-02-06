@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import pickle
+import random
 from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, classification_report
@@ -60,19 +61,21 @@ def train(df: pd.DataFrame):
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # Create XGBoost DMatrix objects
     dtrain = xgb.DMatrix(X_train, label=y_train)
     dtest = xgb.DMatrix(X_test, label=y_test)
+
+    seed = random.randint(0, 1000000)
+    print(f"Using seed: {seed}")
 
     # Define XGBoost parameters
     params = {
         "objective": "binary:logistic",  # binary classification
         "eval_metric": "auc",  # AUC is a good metric for fraud detection
-        "max_depth": 5,  # maximum depth of trees (tune as necessary)
-        "eta": 0.1,  # learning rate (tune as necessary)
-        "seed": 42,
-        "subsample": 0.8,  # sample ratio of training instances
-        "colsample_bytree": 0.8,  # subsample ratio of columns when constructing each tree
+        "max_depth": 5,
+        "eta": 0.1,
+        "seed": seed,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
     }
 
     # Specify number of boosting rounds
