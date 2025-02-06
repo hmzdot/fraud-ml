@@ -36,4 +36,12 @@ uv run src/train.py
 
 # Or with python3 (assuming venv is active)
 python3 src/train.py
+
+## 4. Evaluate another dataset
+
+# Either with uv
+uv run src/eval.py ./snapshots/{model} {path/to/data}
+
+# Or with python3
+python3 src/eval.py ./snapshots/{model} {path/to/data}
 ```

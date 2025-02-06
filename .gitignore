@@ -11,4 +11,5 @@ wheels/
 
 # Dataset, no need to upload it to Github
 data/fraud.csv
+data/*.pkl
 snapshots/*.ubj
